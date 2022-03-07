@@ -47,6 +47,7 @@ highCI <- sorted.perm[975]
 #> highCI 
 #[1] 0.1916831
 
+# Using the same values previously obtained from the resampling above
 lowCI <- -0.2026959
 highCI <- 0.1916831
 
@@ -218,6 +219,42 @@ ggsave(perfect,filename = "/dfs/Liston_Lab/workspace/caroline/2021_sex_chrom_ana
 #second_col = plot_grid(depth.average.plot.SC,NULL,NULL, rel_heights = c(3, 0.2, 1), ncol = 1)
 #perfect = plot_grid(first_col, second_col, ncol = 2, rel_widths = c(3, 1)) + theme(plot.background = element_rect(fill = "white"))
 #ggsave(perfect,filename = "/dfs/Liston_Lab/workspace/caroline/2021_sex_chrom_analysis/figures/TE_grad_try.jpeg")
+
+# Adding arrows to highlight regions specific to the Z or W haplotypes 
+arrow.length <- 0.05
+#touchoff.distance <- 0.001 # distance between data and start of arrow
+
+mumplot_arrow <- mumplot + 
+  #W arrow
+  #annotate("segment", x = c(0.317,0.4), y = c(34.25,34.35), 
+  #         xend = c(0.317,0.4), yend = c(34.25-arrow.length,34.35-arrow.length),
+  #         arrow = arrow(length = unit(1, "mm"), type = "closed")) +
+  annotate("segment", x = c(0.317, 0.46, 0.71, 1.305), y = c(34.13, 34.26, 34.5, 35.16), 
+           xend = c(0.317, 0.46, 0.71, 1.305), yend = c(34.13+arrow.length, 34.26+arrow.length, 34.5+arrow.length, 35.16+arrow.length),
+           arrow = arrow(length = unit(1, "mm"), type = "closed")) +
+  #Z arrow
+  #annotate("segment", x = c(0.29-arrow.length,0.65-arrow.length), y = c(34.18,34.54), 
+  #         xend = c(0.29,0.65), yend = c(34.18,34.54), color = "grey46",
+  #         arrow = arrow(length = unit(1, "mm"), type = "closed"))
+  annotate("segment", x = c(0.27-arrow.length, 0.35-arrow.length, 0.65-arrow.length, 0.84-arrow.length), y = c(34.18, 34.25, 34.54, 34.715), 
+           xend = c(0.27, 0.35, 0.65, 0.84), yend = c(34.18, 34.25, 34.54, 34.715), color = "grey46",
+           arrow = arrow(length = unit(1, "mm"), type = "closed")) +
+  #legend
+  annotate("segment", x = 1.0-arrow.length, y = 33.9, 
+           xend = 1.0, yend = 33.9, color = "grey46",
+           arrow = arrow(length = unit(1, "mm"), type = "closed")) +
+  annotate("segment", x = 0.975, y = 33.8, 
+           xend = 0.975, yend = 33.8+arrow.length, color = "black",
+           arrow = arrow(length = unit(1, "mm"), type = "closed")) +
+  annotate("text", x = 1.15, y = 33.9, label = "Z-specific haplotype", size = 2) +
+  annotate("text", x = 1.15, y = 33.81, label = "W-specific haplotype", size = 2)
+
+first_col = plot_grid(mumplot_arrow, TE_grad_plot_W, depth.average.plot.W, rel_heights = c(3, 0.2, 1), ncol = 1, align = "v")
+second_col = plot_grid(TE_grad_plot_Z,NULL,NULL, rel_heights = c(3, 0.2, 1), ncol = 1)
+third_col = plot_grid(depth.average.plot.SC,NULL,legend_TE, rel_heights = c(3, 0.2, 1), ncol = 1)
+perfect = plot_grid(first_col, second_col, third_col, ncol = 3, rel_widths = c(3,0.21, 1)) + theme(plot.background = element_rect(fill = "white"))
+#ggsave(perfect,filename = "/dfs/Liston_Lab/workspace/caroline/2021_sex_chrom_analysis/figures/mumplot_arrow_ZW_cov_combined_no_sec_log_TE.jpeg")
+ggsave(perfect,filename = "/dfs/Liston_Lab/workspace/caroline/2021_sex_chrom_analysis/figures/mumplot_arrow_ZW_cov_combined_no_sec_log_TE.pdf")
 
 #Z and W spikes
 cov_sex_chr_wind_subset <- cov_sex_chr_wind %>% filter(POS_START/1000000 >33.8) %>% mutate(logdiff = log2(FEMALE_AVG)-log2(MALE_AVG))

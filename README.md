@@ -10,6 +10,8 @@ This repository contains the scripts used to produce the figures of Cauret et al
 
 `dotplot.R`: produces 4 dotplots (3 genome wide, 1 subset of homeologs of group 6): figures S1, S2, S3 and main Fig. 2 
 
+`phylo_SDR_gene.R`: produces a phylogeny figure combining three gene trees: main figure 6. 
+
 Input files:
 
 - FST files were produced with VCFtools (0.1.17) 
