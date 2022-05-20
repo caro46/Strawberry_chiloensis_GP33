@@ -20,6 +20,19 @@ Input files:
 
 `run_vcftools_pop_analysis.py` simply runs the command `vcftools --gzvcf [file] --weir-fst-pop [pop1] --weir-fst-pop [pop2] --out [out_prefix] --fst-window-size [size]` in an autommated way in the different files conatains in a directory. 
 
-- coverage files were produced with samtools 1.14 (Using htslib 1.14)
+- raw coverage files were produced with samtools 1.14 (Using htslib 1.14)
 
 ```samtools depth -H -a -f /dfs/Liston_Lab/scratch/cauretc/2021_sex_chrom_analysis/wgs/bam_files/Liston_bam_list_chil.txt -o /dfs/Liston_Lab/scratch/cauretc/2021_sex_chrom_analysis/wgs/depth_files/no_secondary/Liston_Fvb6-1_depth_no_qual_no_sec.txt -r Fvb6-1_RagTag```
+
+- `normalization.py` was used on the raw coverage files to obtain the normalized coverage (data normalized by the coverage of a representative autosome) per individual, obtain the mean ratio (female/male) of the coverage and calculate non-overlapping window average
+```
+# Calculate the means from the autosomal files
+python3 normalization.py means Liston_Fvb3-1_depth_no_qual_no_sec.txt UCD_Fvb3-1_depth_no_qual_no_sec.txt #produces means.db
+# Use previously calculated means to normalize the data, then use the female and male ID files to calculate the mean coverage per sex and determine the female/male ratio at each position
+# The ID files contain 1 individual per line
+python3 normalization.py ratio data/Males_ID_cov.txt data/Females_ID_cov.txt data/*3-1*.txt > ratio_3_1.txt #uses means.db without having to specify it
+python3 normalization.py ratio data/Males_ID_cov.txt data/Females_ID_cov.txt data/*6-1*.txt > ratio_6_1.txt
+python3 normalization.py ratio data/Males_ID_cov.txt data/Females_ID_cov.txt data/*atg*.txt > ratio_atg.txt
+# Calculate averages from ratio files on 10kb non-overlapping windows
+python3 normalization.py window 10000 ratio_3_1.txt ratio_6_1.txt ratio_atg.txt > ratio_merged_window.txt
+```
