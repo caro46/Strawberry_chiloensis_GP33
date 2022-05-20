@@ -24,7 +24,7 @@ Input files:
 
 ```samtools depth -H -a -f /dfs/Liston_Lab/scratch/cauretc/2021_sex_chrom_analysis/wgs/bam_files/Liston_bam_list_chil.txt -o /dfs/Liston_Lab/scratch/cauretc/2021_sex_chrom_analysis/wgs/depth_files/no_secondary/Liston_Fvb6-1_depth_no_qual_no_sec.txt -r Fvb6-1_RagTag```
 
-- `normalization.py` was used on the raw coverage files to obtain the normalized coverage (data normalized by the coverage of a representative autosome) per individual, obtain the mean ratio (female/male) of the coverage and calculate non-overlapping window average. The final output file (`ratio_merged_window.txt`) was used as input for the above R scripts.
+- `normalization.py` (courtesy of Dr. Andrew S. Tupper) was used on the raw coverage files to obtain the normalized coverage (data normalized by the coverage of a representative autosome) per individual, obtain the mean ratio (female/male) of the coverage and calculate non-overlapping window average. The final output file (`ratio_merged_window.txt`) was used as input for the above R scripts.
 ```
 # Calculate the means from the autosomal files
 python3 normalization.py means Liston_Fvb3-1_depth_no_qual_no_sec.txt UCD_Fvb3-1_depth_no_qual_no_sec.txt #produces means.db
