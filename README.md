@@ -2,15 +2,15 @@
 
 This repository contains the scripts used to produce the figures of Cauret et al. 2022: Chromosome-scale assembly with a phased sex-determining region resolves features of early Z and W chromosome differentiation in a wild octoploid strawberry
 
-`Fst_last.R`: produces the supplemental Fst figures
+- `Fst_last.R`: produces the supplemental Fst figures
 
-`cov.R`: produces the Fig. 3, i.e. combination of a dotplot of the Z and W sequence, coverage analysis (difference between females and males), and repeat coverage.
+- `cov.R`: produces the Fig. 3, i.e. combination of a dotplot of the Z and W sequence, coverage analysis (difference between females and males using normalized coverage files), and repeat coverage.
 
-`all_sex_chr_analysis_last.R` produces Fig. 5, i.e. repeat coverage, intersexual weighted FST and difference between males and females in coverage (log2(mean F) - log2(mean M)) across the sex chromosome
+- `all_sex_chr_analysis_last.R` produces Fig. 5, i.e. repeat coverage, intersexual weighted FST and difference between males and females in read coverage (log2(mean F) - log2(mean M)) across the sex chromosome
 
-`dotplot.R`: produces 4 dotplots (3 genome wide, 1 subset of homeologs of group 6): figures S1, S2, S3 and main Fig. 2 
+- `dotplot.R`: produces 4 dotplots (3 genome wide, 1 subset of homeologs of group 6): figures S1, S2, S3 and main Fig. 2 
 
-`phylo_SDR_gene.R`: produces a phylogeny figure combining three gene trees: main figure 6. 
+- `phylo_SDR_gene.R`: produces a phylogeny figure combining three gene trees: main figure 6. 
 
 Input files:
 
@@ -24,7 +24,7 @@ Input files:
 
 ```samtools depth -H -a -f /dfs/Liston_Lab/scratch/cauretc/2021_sex_chrom_analysis/wgs/bam_files/Liston_bam_list_chil.txt -o /dfs/Liston_Lab/scratch/cauretc/2021_sex_chrom_analysis/wgs/depth_files/no_secondary/Liston_Fvb6-1_depth_no_qual_no_sec.txt -r Fvb6-1_RagTag```
 
-- `normalization.py` was used on the raw coverage files to obtain the normalized coverage (data normalized by the coverage of a representative autosome) per individual, obtain the mean ratio (female/male) of the coverage and calculate non-overlapping window average
+- `normalization.py` was used on the raw coverage files to obtain the normalized coverage (data normalized by the coverage of a representative autosome) per individual, obtain the mean ratio (female/male) of the coverage and calculate non-overlapping window average. The final output file (`ratio_merged_window.txt`) was used as input for the above R scripts.
 ```
 # Calculate the means from the autosomal files
 python3 normalization.py means Liston_Fvb3-1_depth_no_qual_no_sec.txt UCD_Fvb3-1_depth_no_qual_no_sec.txt #produces means.db
