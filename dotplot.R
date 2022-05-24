@@ -43,6 +43,8 @@ to_keep <- list(
     "Fchil7-Av", "Fchil7-B1", "Fchil7-Bi", "Fchil7-B2"),
   c("Fvb1", "Fvb2", "Fvb3", "Fvb4", "Fvb5", "Fvb6", "Fvb7")
 )
+
+# Alignment between final GP33 assembly and diploid vesca
 dot_GP33_vesca <- dotplot1(ali_ragtag_curated_scaff_ves, label_seqs=TRUE, order_by="provided", ordering=to_keep,
                           xlab = "F.chiloensis", ylab = "F.vesca")  +
     theme_bw()
@@ -53,6 +55,7 @@ ggsave(dot_GP33_vesca,filename = "/home/caroline/Documents/Caroline_postdoc_OSU/
        width=20)
 
 # Alignment between final GP33 assembly and octoploid ananassa camarosa genome
+## Renaming chromosomes in a more meaningful way, i.e. based on subgenomes
 ali_ragtag2round_scaff_cam <- read_paf("GP33_ragtag_manual_curation_against_F_ana_Camarosa.paf")%>% 
   mutate(
     qname = str_replace_all( qname, pattern = c("Fvb1-1_RagTag" = "Fchil1-B1", "Fvb1-2_RagTag" = "Fchil1-Bi", "Fvb1-3_RagTag" = "Fchil1-B2", "Fvb1-4_RagTag" ="Fchil1-Av",
@@ -63,7 +66,7 @@ ali_ragtag2round_scaff_cam <- read_paf("GP33_ragtag_manual_curation_against_F_an
                                                 "Fvb6-1_RagTag" = "Fchil6-Av", "Fvb6-2_RagTag" = "Fchil6-B1", "Fvb6-3_RagTag" = "Fchil6-Bi", "Fvb6-4_RagTag" ="Fchil6-B2",
                                                 "Fvb7-1_RagTag" = "Fchil7-B2", "Fvb7-2_RagTag" = "Fchil7-Av", "Fvb7-3_RagTag" = "Fchil7-Bi", "Fvb7-4_RagTag" ="Fchil7-B1")))
 
-
+# Classify by subgenomes
 B1 <- c("Fvb1-1", "Fvb2-1", "Fvb3-1", "Fvb4-1", "Fvb5-4", "Fvb6-2", "Fvb7-4")
 Bi <- c("Fvb1-2", "Fvb2-4", "Fvb3-2", "Fvb4-4", "Fvb5-3", "Fvb6-3", "Fvb7-3")
 B2 <- c("Fvb1-3", "Fvb2-3", "Fvb3-3", "Fvb4-2", "Fvb5-2", "Fvb6-4", "Fvb7-1")
@@ -98,6 +101,9 @@ ggsave(dot_GP33_camarosa,filename = "/home/caroline/Documents/Caroline_postdoc_O
 ##RR path: /dfs/Liston_Lab/workspace/aaron/strawberry/Royal_Royce 
 #minimap2 -x asm5 -t 96 farr1.fa ragtag.scaffolds.curated.reorientated.fasta > RR.GP33.minimap2.paf 
 
+## Chromosome labelling was based on 'Camarosa'
+## Renaming them figures in a more meaningful way, i.e. based on subgenomes
+
 GP33_RR <- read_paf("RR.GP33.minimap2.paf")%>% 
   mutate(
     qname = str_replace_all( qname, pattern = c("Fvb1-1_RagTag" = "Fchil1-B1", "Fvb1-2_RagTag" = "Fchil1-Bi", "Fvb1-3_RagTag" = "Fchil1-B2", "Fvb1-4_RagTag" ="Fchil1-Av",
@@ -131,6 +137,7 @@ to_keep <- list(
     "chr_6A", "chr_6C", "chr_6B", "chr_6D",
     "chr_7A", "chr_7D", "chr_7B", "chr_7C")
 )
+
 dot_GP33_RR <- dotplot1(GP33_RR, label_seqs=TRUE, order_by="provided", ordering=to_keep,
                         xlab = "F. chiloensis", ylab = "F. x ananassa Royal Royce")  +
   theme_bw()
@@ -142,11 +149,13 @@ ggsave(dot_GP33_RR,filename = "/home/caroline/Documents/Caroline_postdoc_OSU/pac
 
 #For main Fig - subset = Group 6 homeologs against vesca, a subgenome = a color
 #"Av" = "red", "B1" = "#CCBB44", "B2" = "#228833", "Bi" = "#4477AA"
+#cannot sirectly do a facet with pafr - need to plot separately in different colors then merge them together at the end
 
 to_keep_6Av <- list(
   c("Fchil6-Av"),
   c("Fvb6")
 )
+
 dot_GP33_vesca_6Av <- dotplot1(ali_ragtag_curated_scaff_ves, label_seqs=FALSE, order_by="provided", ordering=to_keep_6Av,
                            xlab = "Fchil6-Av", ylab = "Fvb6", alignment_colour = "red")  +
   theme_bw() #+
@@ -159,6 +168,7 @@ to_keep_6B1 <- list(
   c("Fchil6-B1"),
   c("Fvb6")
 )
+
 dot_GP33_vesca_6B1 <- dotplot1(ali_ragtag_curated_scaff_ves, label_seqs=FALSE, order_by="provided", ordering=to_keep_6B1,
                                xlab = "Fchil6-B1", ylab = "Fvb6", alignment_colour = "#CCBB44")  +
   theme_bw()+
@@ -173,6 +183,7 @@ to_keep_6Bi <- list(
   c("Fchil6-Bi"),
   c("Fvb6")
 )
+
 dot_GP33_vesca_6Bi <- dotplot1(ali_ragtag_curated_scaff_ves, label_seqs=FALSE, order_by="provided", ordering=to_keep_6Bi,
                                xlab = "Fchil6-Bi", ylab = "Fvb6", alignment_colour = "#4477AA")  +
   theme_bw() +
@@ -185,6 +196,7 @@ to_keep_6B2 <- list(
   c("Fchil6-B2"),
   c("Fvb6")
 )
+
 dot_GP33_vesca_6B2 <- dotplot1(ali_ragtag_curated_scaff_ves, label_seqs=FALSE, order_by="provided", ordering=to_keep_6B2,
                                xlab = "Fchil6-B2", ylab = "Fvb6", alignment_colour = "#228833")  +
   theme_bw() +
@@ -193,6 +205,7 @@ dot_GP33_vesca_6B2 <- dotplot1(ali_ragtag_curated_scaff_ves, label_seqs=FALSE, o
        #plot.margin = unit(c(0, 0, 0, 0), "cm"))
 dot_GP33_vesca_6B2
 
+# Saving the chr6 homeologs dotplots all together
 #first_line = plot_grid(dot_GP33_vesca_6Av, dot_GP33_vesca_6B1, dot_GP33_vesca_6B2, dot_GP33_vesca_6Bi, ncol = 4, align = "hv", axis = "lr") 
 #first_line
 #jpeg(filename = "/home/caroline/Documents/Caroline_postdoc_OSU/pacbio_chiloensis/2021_Phil/Fig_6homeologs_dotplot_GP33_vesca1.jpeg")

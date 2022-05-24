@@ -11,10 +11,14 @@ library("grid")
 
 source("/dfs/Liston_Lab/workspace/caroline/programs/R_plots_themes.R")
 
-#Genome wide Fst
+# Genome wide Fst
 #mydir = "/dfs/Liston_Lab/scratch/cauretc/2021_sex_chrom_analysis/wgs/pop_stats" #when all individuals were used
 mydir = "/dfs/Liston_Lab/scratch/cauretc/2021_sex_chrom_analysis/wgs/pop_stats/13_F_M_no_miss_filt"
 Fstfiles = list.files(path=mydir, pattern="*.windowed.weir.fst", full.names=TRUE)
+
+# Classifying by subgenomes and chromosome set
+## Chromosome labelling was based on 'Camarosa'
+## Renaming them in the figures in a more meaningful way, i.e. based on subgenomes
 
 B1 <- c("Fvb1-1", "Fvb2-1", "Fvb3-1", "Fvb4-1", "Fvb5-4", "Fvb6-2", "Fvb7-4")
 Bi <- c("Fvb1-2", "Fvb2-4", "Fvb3-2", "Fvb4-4", "Fvb5-3", "Fvb6-3", "Fvb7-3")
@@ -49,7 +53,11 @@ Fst.10kb = ldply(Fstfiles, read.table, header = TRUE) %>%
                                 CHROM %in% unlist(Fvb6) ~ "Fchil6",
                                 CHROM %in% unlist(Fvb7) ~ "Fchil7",
                                 TRUE ~ "unknown"))
+
+# Selecting the representative autosome  
 Fst_Fc3_1 <- Fst.10kb%>% filter(CHROM=="Fvb3-1")
+
+# Getting confidence intervals from resampling
 myfunction <- function(i){
   Info <- sample(i,1,replace=FALSE)
   return(Info)
@@ -70,6 +78,7 @@ highCI <- sorted.perm[975]
 #> lowCI
 #[1] -0.0228739
 
+# Plotting Fst for all the chr. with the CI, colored by subgenome
 Fst.10kb.plot_CI <- ggplot(Fst.10kb) + 
   annotate("rect", xmin=-Inf, xmax=Inf, ymin=lowCI, ymax=highCI, alpha=0.8, fill="grey") +
   geom_line(aes(x=BIN_START/1000000, y=WEIGHTED_FST, color = subgenome))+
@@ -84,7 +93,7 @@ Fst.10kb.plot_CI <- ggplot(Fst.10kb) +
 #ggsave(Fst.10kb.plot_CI,filename = "/dfs/Liston_Lab/scratch/cauretc/2021_sex_chrom_analysis/wgs/pop_stats/Fst_10kb_plot_subg_CI.jpeg")
 ggsave(Fst.10kb.plot_CI,filename = "/dfs/Liston_Lab/scratch/cauretc/2021_sex_chrom_analysis/wgs/pop_stats/13_F_M_no_miss_filt/Fst_mean_13_F_M_no_miss_filt_10kb_plot_subg_CI.jpeg")
 
-#Fst per population
+# Fst per population for sex chromosome only
 Fst_all <- read.table("/dfs/Liston_Lab/scratch/cauretc/2021_sex_chrom_analysis/wgs/pop_stats/13_F_M_no_miss_filt/chil_wgs_Liston_UCD_all_ind_remapped_Fvb6-1_RagTag_filtered_ind_filtered_qual_13_F_VS_13_M.windowed.weir.fst",
                      sep ="\t", h = T) %>% mutate(Population = "All")
 
@@ -96,7 +105,7 @@ Fst_CA <- read.table("/dfs/Liston_Lab/scratch/cauretc/2021_sex_chrom_analysis/wg
 
 Fst_all_pop <- bind_rows(Fst_all,Fst_OR,Fst_CA)
 
-
+# Plotting with population as a facet
 Fst_all_pop.plot <- ggplot(Fst_all_pop) + 
   scale_x_continuous(name="Fchil6-Av Position (Mbp)") +
   #annotate(data=CI_table, "rect", xmin=-Inf, xmax=Inf, ymin=low, ymax=high, alpha=0.8, fill="grey")+

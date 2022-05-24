@@ -1,3 +1,8 @@
+# Creating Figure with intersexual Fst, difference in coverage and TE distribution 
+# this was used to produce the main figure 5 and S7 of Cauret et al. 2022
+# Chromosome-scale assembly with a phased sex-determining region resolves features of early Z and W chromosome differentiation in a wild octoploid strawberry
+
+# Loading libraries
 library("dplyr")
 library("plyr")
 library("ggplot2")
@@ -7,17 +12,22 @@ require("data.table")
 library("cowplot")
 library("viridis")
 
+# Loading custom theme for ggplot
 source("/dfs/Liston_Lab/workspace/caroline/programs/R_plots_themes.R")
 
-## Analysis Cov, Fst, pi for Fvb6-1 only 
+# Analysis Cov, Fst, pi for Fvb6-1 only 
 mydir = "/dfs/Liston_Lab/scratch/cauretc/2021_sex_chrom_analysis/wgs/pop_stats/13_F_M_no_miss_filt"
 
-#subgenomes
+## Chromosome labelling was based on 'Camarosa'
+## Renaming them in the figures in a more meaningful way, i.e. based on subgenomes
+
+## Subgenomes
 B1 <- c("Fvb1-1", "Fvb2-1", "Fvb3-1", "Fvb4-1", "Fvb5-4", "Fvb6-2", "Fvb7-4")
 Bi <- c("Fvb1-2", "Fvb2-4", "Fvb3-2", "Fvb4-4", "Fvb5-3", "Fvb6-3", "Fvb7-3")
 B2 <- c("Fvb1-3", "Fvb2-3", "Fvb3-3", "Fvb4-2", "Fvb5-2", "Fvb6-4", "Fvb7-1")
 Av <- c("Fvb1-4", "Fvb2-2", "Fvb3-4", "Fvb4-3", "Fvb5-1", "Fvb6-1", "Fvb7-2")
 
+## Chromosomes
 Fvb1 <- c("Fvb1-1", "Fvb1-2", "Fvb1-3", "Fvb1-4")
 Fvb2 <- c("Fvb2-1", "Fvb2-2", "Fvb2-3", "Fvb2-4")
 Fvb3 <- c("Fvb3-1", "Fvb3-2", "Fvb3-3", "Fvb3-4")
@@ -26,7 +36,7 @@ Fvb5 <- c("Fvb5-1", "Fvb5-2", "Fvb5-3", "Fvb5-4")
 Fvb6 <- c("Fvb6-1", "Fvb6-2", "Fvb6-3", "Fvb6-4")
 Fvb7 <- c("Fvb7-1", "Fvb7-2", "Fvb7-3", "Fvb7-4")
 
-#Fst
+# Fst
 Fstfiles = list.files(path=mydir, pattern="*.windowed.weir.fst", full.names=TRUE)
 Fst.10kb = ldply(Fstfiles, read.table, header = TRUE) %>% 
   mutate(CHROM = str_remove_all(CHROM, "_RagTag")) %>% 
@@ -48,7 +58,7 @@ Fst.10kb = ldply(Fstfiles, read.table, header = TRUE) %>%
 Fst_Fc6_1 <- Fst.10kb %>% filter(CHROM=="Fvb6-1") %>% mutate(analysis = "Intersexual Fst") %>% 
   mutate(value = WEIGHTED_FST)%>% select(BIN_START, value, analysis)
 
-#Coverage
+# Coverage
 all_depth_wind <- fread("/dfs/Liston_Lab/scratch/cauretc/2021_sex_chrom_analysis/wgs/depth_files/no_secondary/ratio_merged_window.txt", sep="\t")
 names(all_depth_wind) = gsub(pattern = "#", replacement = "", x = names(all_depth_wind))
 cov_sex_chr_wind <- all_depth_wind %>% filter(CHROM == "Fvb6-1_RagTag") %>% mutate(FEMALE_AVG = FEMALE_AVG + 0.001, MALE_AVG = MALE_AVG + 0.001)
@@ -60,10 +70,10 @@ cov_Fc6_1 <- cov_sex_chr_wind %>%
   mutate(value =log2(FEMALE_AVG)-log2(MALE_AVG))%>% 
   select(BIN_START, value, analysis)
 
-#Merging both analysis
+# Merging both analysis
 allFc6_1_analysis <- bind_rows(Fst_Fc6_1,cov_Fc6_1)
 
-#Getting some CI (from Fst.R and cov.R)
+# Getting some CI (from Fst.R and cov.R)
 
 #Fst - 13FM - no missing filt, weighted
 #highCI
@@ -77,17 +87,24 @@ allFc6_1_analysis <- bind_rows(Fst_Fc6_1,cov_Fc6_1)
 #> highCI 
 #[1] 1.155434
 
+#log2
+#> lowCI 
+#[1] -0.2026959
+#> highCI 
+#[1] 0.1916831
+
 lowCI_Fst <- -0.0228739
 highCI_Fst <- 0.0192476
 lowCI_cov <- -0.2026959
 highCI_cov <- 0.1916831
 
+# Creating dataframe containing information about CI/analysis
 CI_table <- data_frame(low = c(lowCI_cov,lowCI_Fst), high = c(highCI_cov,highCI_Fst), analysis =c("Coverage (F:M)","Intersexual Fst"))
 
-##Add line to highlight the same region plotted in first fig
+# Adding line to highlight the same region plotted in first fig
 line_table <- data_frame(start = 33.8, end = 35.3, analysis ="Coverage (F:M)")
 
-#Plotting - each analysis corresponding to a facet
+# Plotting - each analysis corresponding to a facet
 allFc6_1_analysis.plot <- ggplot(allFc6_1_analysis) + 
   scale_x_continuous(name="Fchil6-Av Position (Mbp)") +
   #annotate(data=CI_table, "rect", xmin=-Inf, xmax=Inf, ymin=low, ymax=high, alpha=0.8, fill="grey")+
@@ -103,7 +120,7 @@ allFc6_1_analysis.plot <- ggplot(allFc6_1_analysis) +
 
 #ggsave(allFc6_1_analysis.plot,filename = "/dfs/Liston_Lab/workspace/caroline/2021_sex_chrom_analysis/figures/all_10kb_analysis_plot_equalMF.jpeg")
 
-##Autosome 3-1
+# Getting Fst and cov for representative autosome Fvb3-1
 Fst_Fc3_1 <- Fst.10kb %>% filter(CHROM=="Fvb3-1") %>% mutate(analysis = "Intersexual Fst") %>% 
   mutate(value = WEIGHTED_FST)%>% select(BIN_START, value, analysis)
 cov_autosome <- all_depth_wind %>% filter(CHROM == "Fvb3-1_RagTag") %>% 
@@ -120,7 +137,7 @@ div_Fc3_1 <- divF.10kb %>% filter(CHROM=="Fvb3-1") %>% mutate(analysis = "Pi F")
 #allFc3_1_analysis <- bind_rows(Fst_Fc3_1,cov_Fc3_1,div_Fc3_1)
 allFc3_1_analysis <- bind_rows(Fst_Fc3_1,cov_Fc3_1)
 
-#Merging the analysis from the sex chromosome and autosome
+# Merging the analysis from the sex chromosome and autosome
 allFc6_1_analysis <- allFc6_1_analysis %>% mutate(chr = "Fchil6-Av")
 allFc3_1_analysis <- allFc3_1_analysis %>% mutate(chr = "Fchil3-B1")
 all_analysis_SC_autosome <- bind_rows(allFc6_1_analysis,allFc3_1_analysis)
@@ -134,6 +151,7 @@ all_analysis_SC_autosome <- bind_rows(allFc6_1_analysis,allFc3_1_analysis)
 #  theme(axis.title.y=element_blank(),
 #        strip.text.y = element_text(angle = -90, size = 14))
 
+# Plotting Fst and cov for the sex chromosome and autosome (Fig. S7)
 all_analysis_SC_autosome.plot <- ggplot(all_analysis_SC_autosome) + 
   scale_x_continuous(name="Genomic Position (Mbp)") +
   geom_rect(data=CI_table, aes(xmin=-Inf, xmax=Inf, ymin=low, max=high), fill="grey", alpha=0.5) +
@@ -148,11 +166,12 @@ all_analysis_SC_autosome.plot <- ggplot(all_analysis_SC_autosome) +
 #ggsave(all_analysis_SC_autosome.plot,filename = "/dfs/Liston_Lab/workspace/caroline/2021_sex_chrom_analysis/figures/all_10kb_analysis_plot_equalMF_no_CI_only_F_div_SC_autosome.jpeg")
 ggsave(all_analysis_SC_autosome.plot,filename = "/dfs/Liston_Lab/workspace/caroline/2021_sex_chrom_analysis/figures/all_10kb_analysis_plot_equalMF_SC_autosome.jpeg")
 
-#Adding the TEs on the sex chromosome analysis plot
+# Adding the TEs on the sex chromosome analysis plot
 TE_cov_wind <- read.table("/dfs/Liston_Lab/workspace/sebastian/gp33_repeats/20211019_repeat_correction/20211019_rt.scaffs.curated.reorient.wW.fa.out.SexContigs_GP33_10kb_windows.COV.txt", sep ="\t", h = F)
 colnames(TE_cov_wind) <- c("chrom", "start", "end", "features_numb", "bp", "wind_size", "proportion")
 TE_cov_wind_SC <- TE_cov_wind %>% filter(chrom == "Fvb6-1_RagTag")
 
+# Plotting as a gradient (tiles)
 TE_grad_plot_SC <- ggplot(TE_cov_wind_SC) +
   geom_tile(aes(y = "SC", x=start/1000000, fill = proportion)) +
   scale_fill_viridis(name = "Repeat cov") +
@@ -166,6 +185,7 @@ TE_grad_plot_SC <- ggplot(TE_cov_wind_SC) +
         legend.text = element_text(size=10),
         legend.title = element_text(size=12)) 
 
+# Extracting the TE legend in order to put it in a better spot
 legend_TE <- cowplot::get_legend(TE_grad_plot_SC) 
 
 TE_grad_plot_SC <- TE_grad_plot_SC + theme(legend.position = "none", #axis.text.x = element_blank(),  
@@ -175,6 +195,7 @@ TE_grad_plot_SC <- TE_grad_plot_SC + theme(legend.position = "none", #axis.text.
                                          axis.title = element_text(size = 13),
                                          strip.text.y = element_text(angle = -90, size = 14))
 
+# First column is TE, Cov, Fst on the whole sex chromosome
 first_col = plot_grid(TE_grad_plot_SC, allFc6_1_analysis.plot, rel_heights = c(0.3, 3), ncol = 1, align = "v", axis = "lr")
 #ggsave(first_col,filename = "/dfs/Liston_Lab/workspace/caroline/2021_sex_chrom_analysis/figures/all_10kb_analysis_plot_equalMF_SC_TE.jpeg")
 ggsave(first_col,filename = "/dfs/Liston_Lab/workspace/caroline/2021_sex_chrom_analysis/figures/all_10kb_analysis_plot_equalMF_SC_TE_line.jpeg")
@@ -187,6 +208,7 @@ ggsave(first_col,filename = "/dfs/Liston_Lab/workspace/caroline/2021_sex_chrom_a
 TE_cov_wind_SC_subset <- TE_cov_wind_SC %>% mutate(start = start +1) %>% filter(start >= 34140001 & start <= 34240001)
 allFc6_1_analysis_subset <- allFc6_1_analysis %>% filter(BIN_START >= 34140001 & BIN_START <= 34240001)
 
+# Same plotting as before except zoom / subset on the Fst spike
 allFc6_1_analysis_subset.plot <- ggplot(allFc6_1_analysis_subset) + 
   #scale_x_continuous(name="Fchil6-Av Position (Mbp)") +
   #scale_x_continuous(name="Fchil6-Av Position (Mbp)", limits = c(34.13,34.25), breaks = c(34.14, 34.20,34.25)) +
@@ -248,7 +270,8 @@ TE_grad_plot_SC_subset <- TE_grad_plot_SC_subset + theme(legend.position = "none
 #ggsave(first_col,filename = "/dfs/Liston_Lab/workspace/caroline/2021_sex_chrom_analysis/figures/all_10kb_analysis_plot_equalMF_SC_TE_zoom_Fstspike.jpeg")
 #ggsave(first_col,filename = "/dfs/Liston_Lab/workspace/caroline/2021_sex_chrom_analysis/figures/all_10kb_analysis_plot_equalMF_SC_TE_zoom_Fstspike_test.jpeg")
 
-#combine both: all sex chromosome and zoomed as separate columns
+# Combine both: all sex chromosome and zoomed as separate columns
+## compared to previous version above - change in some sizes to look good as 2 columns
 allFc6_1_analysis.plot <- ggplot(allFc6_1_analysis) + 
   scale_x_continuous(name="Fchil6-Av Position (Mbp)") +
   geom_rect(data=CI_table, aes(xmin=-Inf, xmax=Inf, ymin=low, max=high), fill="grey", alpha=0.5) +

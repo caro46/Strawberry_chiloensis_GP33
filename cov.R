@@ -12,18 +12,23 @@ library("grid")
 library("cowplot")
 library("viridis")
 
+# Loading custom theme for ggplot
 source("/dfs/Liston_Lab/workspace/caroline/programs/R_plots_themes.R")
+
+# Coverage data - output file of normalization.py 
 all_depth_wind <- fread("/dfs/Liston_Lab/scratch/cauretc/2021_sex_chrom_analysis/wgs/depth_files/no_secondary/ratio_merged_window.txt", sep="\t")
 names(all_depth_wind) = gsub(pattern = "#", replacement = "", x = names(all_depth_wind))
 
 cov_W_wind <- all_depth_wind %>% filter(CHROM == "atg000165l") %>% mutate(FEMALE_AVG = FEMALE_AVG + 0.001, MALE_AVG = MALE_AVG + 0.001)
 cov_sex_chr_wind <- all_depth_wind %>% filter(CHROM == "Fvb6-1_RagTag") %>% mutate(FEMALE_AVG = FEMALE_AVG + 0.001, MALE_AVG = MALE_AVG + 0.001)
 
-##Confidence intervals
+# Getting confidence intervals
+
+## Select representative autosome to use for resampling
 cov_autosome <- all_depth_wind %>% filter(CHROM == "Fvb3-1_RagTag") %>% 
   mutate(FEMALE_AVG = FEMALE_AVG + 0.001, MALE_AVG = MALE_AVG + 0.001, ratio = FEMALE_AVG/MALE_AVG, log_diff = log2(FEMALE_AVG) - log2(MALE_AVG))
   
-
+## Sampling function
 myfunction <- function(i){
   Info <- sample(i,1,replace=FALSE)
   return(Info)
@@ -51,7 +56,9 @@ highCI <- sorted.perm[975]
 lowCI <- -0.2026959
 highCI <- 0.1916831
 
-##nucmer ZW
+# Nucmer alignment of the Z and W haplotypes
+
+## Function to read the nucmer delta file
 readDelta <- function(deltafile){
   lines = scan(deltafile, 'a', sep='\n', quiet=TRUE)
   lines = lines[-1]
@@ -70,11 +77,14 @@ readDelta <- function(deltafile){
   res
 }
 
+## Intervals to highlight Z and W specific regions
 interval <- data.frame(chrom="atg000165l", start=298666, end=334844)
 interval_Z <- data.frame(chrom="Fvb6-1", start=34170001, end=34190001)
 
+## Loading the alignment
 mumgp = readDelta("/dfs/Liston_Lab/workspace/caroline/2021_sex_chrom_analysis/nucmer_W_Z/Fvb61_atgW_filter.delta")
 
+## Plotting the alignment
 mumplot <- ggplot(mumgp, aes(x=qs/1000000, xend=qe/1000000, y=rs/1000000, yend=re/1000000, colour=strand)) + geom_segment(size=1.5) +
   theme_bw() + cleanPlot2() + ylim(33.8,35.3) + theme(legend.position = "none",
                                                       axis.text.y = element_text(),
@@ -89,6 +99,7 @@ mumplot <- ggplot(mumgp, aes(x=qs/1000000, xend=qe/1000000, y=rs/1000000, yend=r
   geom_rect(data=interval_Z, inherit.aes=FALSE, aes(ymin=start/1000000, ymax=end/1000000, xmin=-Inf,
                                                   xmax=Inf), color="transparent", fill="violet", alpha=0.5)
 
+## Plotting the coverage along the Z and W haplotypes
 depth.average.plot.W <- ggplot(cov_W_wind) +
   annotate("rect", xmin=-Inf, xmax=Inf, ymin=lowCI, ymax=highCI, alpha=0.8, fill="grey") +
   geom_rect(data=interval, inherit.aes=FALSE, aes(xmin=start/1000000, xmax=end/1000000, ymin=-Inf,
@@ -122,6 +133,7 @@ depth.average.plot.SC <- ggplot(cov_sex_chr_wind)+
   ylab('Cov(F:M)') +
   scale_x_continuous(position = "top", limits=c(33.8,35.3)) 
 
+## Changing orientation of the Z haplotype coverage plot
 depth.average.plot.SC <- depth.average.plot.SC + coord_flip() 
 #changing margin
 #mumplot = mumplot + theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
@@ -131,6 +143,8 @@ depth.average.plot.SC <- depth.average.plot.SC + coord_flip()
 #first_col = plot_grid(mumplot, depth.average.plot.W, ncol = 1, rel_heights = c(3, 1), align = "hv")
 #second_col = plot_grid(depth.average.plot.SC,NULL, ncol = 1, rel_heights = c(3, 1), align = "hv")
 #perfect = plot_grid(first_col, second_col, ncol = 2, rel_widths = c(3, 1), nrow = 1, align = "hv") + theme(plot.background = element_rect(fill = "white"))
+
+## Combining alignment and coverage plots
 first_col = plot_grid(mumplot, depth.average.plot.W, rel_heights = c(3, 1), ncol = 1, align = "v")
 second_col = plot_grid(depth.average.plot.SC,NULL, rel_heights = c(3, 1), ncol = 1)
 perfect = plot_grid(first_col, second_col, ncol = 2, rel_widths = c(3, 1)) + theme(plot.background = element_rect(fill = "white"))
@@ -142,13 +156,14 @@ perfect = plot_grid(first_col, second_col, ncol = 2, rel_widths = c(3, 1)) + the
 #ggsave(perfect,filename = "/dfs/Liston_Lab/workspace/caroline/2021_sex_chrom_analysis/figures/mumplot_ZW_cov_combined_no_sec.jpeg")
 ggsave(perfect,filename = "/dfs/Liston_Lab/workspace/caroline/2021_sex_chrom_analysis/figures/mumplot_ZW_cov_combined_no_sec_log.jpeg")
 
-#Add TE gradient
+## Adding TE gradient
 TE_cov_wind <- read.table("/dfs/Liston_Lab/workspace/sebastian/gp33_repeats/20211019_repeat_correction/20211019_rt.scaffs.curated.reorient.wW.fa.out.SexContigs_GP33_10kb_windows.COV.txt", sep ="\t", h = F)
 colnames(TE_cov_wind) <- c("chrom", "start", "end", "features_numb", "bp", "wind_size", "proportion")
 
 TE_cov_wind_Z <- TE_cov_wind %>% filter(chrom == "Fvb6-1_RagTag")
 TE_cov_wind_W <- TE_cov_wind %>% filter(chrom == "atg000165l")
 
+## Plotting TE cov
 TE_grad_plot_Z <- ggplot(TE_cov_wind_Z) +
   #geom_rect(aes(ymin = 1, ymax = 1, xmin=min(start/1000000), xmax= max(start/1000000), fill = proportion)) +
   #geom_tile(aes(y = 1, x=start/1000000, fill = proportion)) +
@@ -200,6 +215,7 @@ TE_grad_plot_W <- ggplot(TE_cov_wind_W) +
   #      axis.text = element_text(size = 9),
   #      axis.title = element_text(size = 13))
 
+## Getting the coverage legend
 legend_TE <- cowplot::get_legend(TE_grad_plot_W) 
 
 TE_grad_plot_W <- TE_grad_plot_W + theme(legend.position = "none", axis.text.x = element_blank(),  
@@ -209,6 +225,7 @@ TE_grad_plot_W <- TE_grad_plot_W + theme(legend.position = "none", axis.text.x =
 
 #ggsave(TE_grad_plot_W,filename = "/dfs/Liston_Lab/workspace/caroline/2021_sex_chrom_analysis/figures/TE_grad_try.jpeg")
 
+## Combining alignment, coverage, TE distribution
 first_col = plot_grid(mumplot, TE_grad_plot_W, depth.average.plot.W, rel_heights = c(3, 0.2, 1), ncol = 1, align = "v")
 second_col = plot_grid(TE_grad_plot_Z,NULL,NULL, rel_heights = c(3, 0.2, 1), ncol = 1)
 third_col = plot_grid(depth.average.plot.SC,NULL,legend_TE, rel_heights = c(3, 0.2, 1), ncol = 1)
@@ -220,7 +237,7 @@ ggsave(perfect,filename = "/dfs/Liston_Lab/workspace/caroline/2021_sex_chrom_ana
 #perfect = plot_grid(first_col, second_col, ncol = 2, rel_widths = c(3, 1)) + theme(plot.background = element_rect(fill = "white"))
 #ggsave(perfect,filename = "/dfs/Liston_Lab/workspace/caroline/2021_sex_chrom_analysis/figures/TE_grad_try.jpeg")
 
-# Adding arrows to highlight regions specific to the Z or W haplotypes 
+## Adding arrows to highlight regions specific to the Z or W haplotypes 
 arrow.length <- 0.05
 #touchoff.distance <- 0.001 # distance between data and start of arrow
 
@@ -249,6 +266,7 @@ mumplot_arrow <- mumplot +
   annotate("text", x = 1.15, y = 33.9, label = "Z-specific haplotype", size = 2) +
   annotate("text", x = 1.15, y = 33.81, label = "W-specific haplotype", size = 2)
 
+## Final plots with the arrows
 first_col = plot_grid(mumplot_arrow, TE_grad_plot_W, depth.average.plot.W, rel_heights = c(3, 0.2, 1), ncol = 1, align = "v")
 second_col = plot_grid(TE_grad_plot_Z,NULL,NULL, rel_heights = c(3, 0.2, 1), ncol = 1)
 third_col = plot_grid(depth.average.plot.SC,NULL,legend_TE, rel_heights = c(3, 0.2, 1), ncol = 1)
