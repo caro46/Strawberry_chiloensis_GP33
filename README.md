@@ -36,3 +36,13 @@ python3 normalization.py ratio data/Males_ID_cov.txt data/Females_ID_cov.txt dat
 # Calculate averages from ratio files on 10kb non-overlapping windows
 python3 normalization.py window 10000 ratio_3_1.txt ratio_6_1.txt ratio_atg.txt > ratio_merged_window.txt
 ```
+
+## GDR submission
+
+The final genome assembly is available on GDR (https://www.rosaceae.org/).
+
+Since the chromosome nomenclature was decided at the end of the analysis, the naming for the figure was performed within the scripts described above. For GDR, I made a script to rename the genome assembly and annotation with the final nomenclature (i.e. "Fchil1-B1" instead of "Fchil1-B1"). 
+Run: 
+```
+python3 rename_genome.py --nomenclature_file chromosome_nomenclature.txt --fasta ~/Documents/Caroline_postdoc_OSU/2022_G3_zenodo_temp/ragtag.scaffolds.curated.reorientated.fasta --gff_file ~/Documents/Caroline_postdoc_OSU/2022_G3_zenodo_temp/Fchil_GP33_withoutW_v0.1.gff_polished --output_fasta Fchil_GP33_v1.0.fa --output_gff_file Fchil_GP33_v1.0.gff
+```
